@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { storage } from '../utils/storage';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://docpa.onrender.com/api/v1';
+
 const axiosClient = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -70,7 +72,7 @@ axiosClient.interceptors.response.use(
       }
 
       try {
-        const refreshResponse = await axios.post('/api/v1/users/refresh', {
+        const refreshResponse = await axiosClient.post('/users/refresh', {
           refreshToken: tokens.refreshToken,
         });
 
