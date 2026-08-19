@@ -1,27 +1,30 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { Input } from '../components/ui/Input';
+import { Alert } from '../components/ui/Alert';
 import {
+  ShieldCheck,
   User,
   Mail,
   Phone,
-  ShieldCheck,
-  CheckCircle2,
-  AlertCircle,
-  Activity,
-  Edit3,
   Calendar,
-  Lock,
-  KeyRound,
+  Activity,
+  Edit2,
   Sparkles,
+  CheckCircle2,
+  Stethoscope,
+  Building,
+  Users,
+  ArrowRight,
 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Alert } from '../components/ui/Alert';
 
 export const Home = () => {
-  const { user, updateProfile, refreshProfile } = useAuth();
+  const { user, updateProfile } = useAuth();
+  const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -29,100 +32,120 @@ export const Home = () => {
     avatar_url: user?.avatar_url || '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setLoading(true);
+    setSuccessMsg('');
+    setErrorMsg('');
 
     try {
-      setLoading(true);
       await updateProfile(formData);
-      setSuccess('Profile updated successfully!');
+      setSuccessMsg('Profile updated successfully!');
       setIsEditing(false);
     } catch (err) {
-      setError(err.message || 'Failed to update profile.');
+      setErrorMsg(err.message || 'Failed to update profile.');
     } finally {
       setLoading(false);
     }
   };
 
+  const isDoctor = user?.role === 'doctor' || user?.role === 'clinic_admin' || user?.role === 'admin';
+  const isReceptionist = user?.role === 'receptionist' || user?.role === 'nurse';
+
   return (
-    <div style={{ paddingBottom: '3rem' }} className="animate-fade-in">
-      {/* Hero Welcome Banner */}
+    <div className="home-container animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem 1rem' }}>
+      <Alert type="success" message={successMsg} onClose={() => setSuccessMsg('')} />
+      <Alert type="error" message={errorMsg} onClose={() => setErrorMsg('')} />
+
+      {/* Hero Welcome Banner with Role Quick Launch */}
       <div
-        className="glass-card"
         style={{
-          padding: '2.5rem 2rem',
+          background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-color)',
+          padding: '2rem',
           marginBottom: '2rem',
-          background:
-            'linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%)',
-          border: '1px solid rgba(14, 165, 233, 0.2)',
           display: 'flex',
-          alignItems: 'center',
           justifyContent: 'space-between',
+          alignItems: 'center',
           flexWrap: 'wrap',
           gap: '1.5rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div
-            style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--primary-glow)',
-              color: 'var(--primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.75rem',
-              fontWeight: '800',
-              border: '2px solid var(--primary)',
-              boxShadow: '0 0 20px var(--primary-glow)',
-            }}
-          >
-            {user?.name ? user.name.charAt(0).toUpperCase() : <User size={32} />}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Badge variant={user?.role || 'patient'} size="md">
+              {user?.role?.toUpperCase() || 'PATIENT'}
+            </Badge>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+              DocOn Medical System
+            </span>
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: '800' }}>
-                Welcome back, {user?.name || 'User'}!
-              </h1>
-              <Badge variant={user?.role || 'patient'}>{user?.role || 'patient'}</Badge>
-            </div>
-            <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.95rem' }}>
-              Logged in securely via Docpa Health Authentication System
-            </p>
-          </div>
+          <h1 style={{ fontSize: '2rem', fontWeight: '800', marginTop: '6px' }}>
+            Hello, {user?.name || (isDoctor ? 'Doctor' : 'Welcome!')}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '4px', maxWidth: '600px' }}>
+            {isDoctor
+              ? 'Access your clinical suite, OPD live token caller, prescription generator, and clinic configurations.'
+              : isReceptionist
+              ? 'Front-desk counter ready for patient token generation and vitals recording.'
+              : 'Your personal health portal for prescriptions, appointments, and diagnostic records.'}
+          </p>
         </div>
 
-        <Button
-          variant="outline"
-          icon={Edit3}
-          onClick={() => {
-            setIsEditing(!isEditing);
-            setFormData({ name: user?.name || '', avatar_url: user?.avatar_url || '' });
-          }}
-        >
-          {isEditing ? 'Cancel Edit' : 'Edit Profile'}
-        </Button>
+        {/* Quick Launch Button based on role */}
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          {isDoctor && (
+            <>
+              <Button
+                variant="primary"
+                icon={Stethoscope}
+                onClick={() => navigate('/doctor/dashboard')}
+              >
+                Open Doctor Suite
+              </Button>
+              <Button
+                variant="secondary"
+                icon={Building}
+                onClick={() => navigate('/clinic/settings')}
+              >
+                Clinic Settings
+              </Button>
+            </>
+          )}
+
+          {isReceptionist && (
+            <Button
+              variant="primary"
+              icon={Users}
+              onClick={() => navigate('/reception/dashboard')}
+            >
+              Open Reception Desk
+            </Button>
+          )}
+
+          <Button
+            variant="ghost"
+            icon={Edit2}
+            onClick={() => setIsEditing(!isEditing)}
+          >
+            Edit Profile
+          </Button>
+        </div>
       </div>
 
-      <Alert type="error" message={error} onClose={() => setError('')} />
-      <Alert type="success" message={success} onClose={() => setSuccess('')} />
-
-      {/* Edit Profile Form Card */}
+      {/* Profile Edit Drawer */}
       {isEditing && (
         <Card
-          title="Edit Profile Information"
-          subtitle="Update your display name or profile image URL"
+          title="Update Account Info"
+          subtitle="Modify your name and display avatar"
           style={{ marginBottom: '2rem' }}
         >
           <form onSubmit={handleUpdateProfile}>
-            <div className="grid-2">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <Input
                 label="Full Name"
                 name="name"
@@ -152,175 +175,56 @@ export const Home = () => {
         </Card>
       )}
 
-      {/* Dashboard Grid */}
-      <div className="grid-3">
-        {/* Profile Card */}
-        <Card title="Account Overview" subtitle="User credentials and verified identity">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div
-                style={{
-                  padding: '8px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-input)',
-                  color: 'var(--primary)',
-                }}
-              >
-                <Mail size={20} />
-              </div>
+      {/* Account Info Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+        <Card title="Contact & Identity" subtitle="Verified communication channels">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Mail size={18} color="var(--primary)" />
               <div style={{ flex: 1 }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-subtle)', display: 'block' }}>
-                  Email Address
-                </span>
-                <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>
-                  {user?.email || 'Not provided'}
-                </span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Email</span>
+                <strong style={{ fontSize: '0.85rem' }}>{user?.email || 'Not set'}</strong>
               </div>
-              {user?.is_email_verified ? (
-                <Badge variant="success" size="sm">
-                  <CheckCircle2 size={12} /> Verified
-                </Badge>
-              ) : (
-                <Badge variant="warning" size="sm">
-                  Unverified
-                </Badge>
-              )}
+              <Badge variant={user?.is_email_verified ? 'success' : 'warning'} size="sm">
+                {user?.is_email_verified ? 'Verified' : 'Unverified'}
+              </Badge>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div
-                style={{
-                  padding: '8px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-input)',
-                  color: 'var(--secondary)',
-                }}
-              >
-                <Phone size={20} />
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Phone size={18} color="#10B981" />
               <div style={{ flex: 1 }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-subtle)', display: 'block' }}>
-                  Mobile Phone
-                </span>
-                <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>
-                  {user?.phone || 'Not provided'}
-                </span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Phone</span>
+                <strong style={{ fontSize: '0.85rem' }}>{user?.phone || 'Not set'}</strong>
               </div>
-              {user?.is_phone_verified ? (
-                <Badge variant="success" size="sm">
-                  <CheckCircle2 size={12} /> Verified
-                </Badge>
-              ) : (
-                <Badge variant="warning" size="sm">
-                  Unverified
-                </Badge>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div
-                style={{
-                  padding: '8px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-input)',
-                  color: 'var(--accent)',
-                }}
-              >
-                <Calendar size={20} />
-              </div>
-              <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-subtle)', display: 'block' }}>
-                  Member Since
-                </span>
-                <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>
-                  {user?.createdAt
-                    ? new Date(user.createdAt).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })
-                    : 'Recent'}
-                </span>
-              </div>
+              <Badge variant={user?.is_phone_verified ? 'success' : 'warning'} size="sm">
+                {user?.is_phone_verified ? 'Verified' : 'Unverified'}
+              </Badge>
             </div>
           </div>
         </Card>
 
-        {/* Security & Authentication Providers */}
-        <Card title="Security & Authentication" subtitle="Enabled login methods & token health">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-subtle)', display: 'block', marginBottom: '8px' }}>
-                Active Auth Providers
-              </span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {user?.auth_providers?.map((provider) => (
-                  <Badge key={provider} variant="info" size="sm">
-                    {provider}
-                  </Badge>
-                )) || <Badge variant="info" size="sm">Password</Badge>}
-              </div>
-            </div>
-
+        <Card title="DocOn Security & RBAC" subtitle="Role-Based Access Control status">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div
               style={{
-                padding: '12px',
-                borderRadius: 'var(--radius-md)',
-                background: 'rgba(16, 185, 129, 0.08)',
-                border: '1px solid rgba(16, 185, 129, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-              }}
-            >
-              <ShieldCheck size={20} style={{ color: '#34D399' }} />
-              <div>
-                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#34D399', display: 'block' }}>
-                  JWT Security Active
-                </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Auto-refreshes tokens & guards session
-                </span>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Role Portal Overview */}
-        <Card
-          title={`${(user?.role || 'patient').toUpperCase()} Workspace`}
-          subtitle="Quick access portal features"
-        >
-          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-            <div
-              style={{
-                width: '48px',
-                height: '48px',
+                width: '40px',
+                height: '40px',
                 borderRadius: '50%',
-                background: 'var(--primary-glow)',
-                color: 'var(--primary)',
+                background: 'rgba(16, 185, 129, 0.1)',
+                color: '#10B981',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 12px',
               }}
             >
-              <Activity size={24} />
+              <ShieldCheck size={22} />
             </div>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '6px' }}>
-              {user?.role === 'doctor'
-                ? 'Doctor Portal Ready'
-                : user?.role === 'admin'
-                ? 'Admin Console Active'
-                : 'Patient Care Hub'}
-            </h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-              {user?.role === 'doctor'
-                ? 'Manage appointments, patient consultations, and clinical records.'
-                : user?.role === 'admin'
-                ? 'System administration, user access policies, and platform metrics.'
-                : 'Book medical appointments, check lab reports, and manage health records.'}
-            </p>
+            <div>
+              <strong style={{ fontSize: '0.95rem' }}>Role: {user?.role?.toUpperCase()}</strong>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                Multi-clinic session and permissions active
+              </p>
+            </div>
           </div>
         </Card>
       </div>

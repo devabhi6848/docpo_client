@@ -1,221 +1,237 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, LogOut, Sun, Moon, User as UserIcon, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { Badge } from '../ui/Badge';
+import { useClinic } from '../../context/ClinicContext';
+import { Button } from '../ui/Button';
+import {
+  Activity,
+  LogOut,
+  User,
+  Stethoscope,
+  Users,
+  Settings,
+  Tv,
+  Receipt,
+  FileText,
+  TrendingUp,
+} from 'lucide-react';
 
 export const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { activeClinic } = useClinic();
   const navigate = useNavigate();
-  const [theme, setTheme] = useState(() => localStorage.getItem('docpa_theme') || 'dark');
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('docpa_theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
+    logout();
     navigate('/login');
   };
+
+  const isDoctor = user?.role === 'doctor' || user?.role === 'admin';
+  const isReception =
+    user?.role === 'receptionist' ||
+    user?.role === 'doctor' ||
+    user?.role === 'admin' ||
+    user?.role === 'nurse';
 
   return (
     <header
       style={{
+        borderBottom: '1px solid var(--border-color)',
+        backgroundColor: 'var(--bg-card)',
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        background: 'var(--bg-card)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border-color)',
-        padding: '0.85rem 1.5rem',
       }}
     >
       <div
         style={{
-          maxWidth: '1200px',
+          maxWidth: '1280px',
           margin: '0 auto',
+          padding: '0.75rem 1.5rem',
           display: 'flex',
-          alignItems: 'center',
           justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
-        {/* Brand Logo */}
         <Link
           to="/"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
+            gap: '0.5rem',
             textDecoration: 'none',
+            color: 'var(--text-main)',
+            fontWeight: '800',
+            fontSize: '1.25rem',
+            letterSpacing: '-0.025em',
           }}
         >
           <div
             style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
+              padding: '6px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--primary)',
+              color: '#fff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#FFFFFF',
-              boxShadow: '0 4px 12px var(--primary-glow)',
             }}
           >
-            <Activity size={22} />
+            <Activity size={20} />
           </div>
-          <div>
-            <span
-              className="gradient-text"
-              style={{ fontSize: '1.35rem', fontWeight: '800', letterSpacing: '-0.03em' }}
-            >
-              Docpa
-            </span>
-            <span
-              style={{
-                fontSize: '0.7rem',
-                display: 'block',
-                color: 'var(--text-subtle)',
-                marginTop: '-4px',
-                fontWeight: '600',
-              }}
-            >
-              HEALTH PLATFORM
-            </span>
-          </div>
+          <span>Docpa</span>
+          <span
+            style={{
+              fontSize: '0.65rem',
+              background: 'rgba(37, 99, 235, 0.1)',
+              color: 'var(--primary)',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontWeight: '700',
+            }}
+          >
+            DOCON PRO
+          </span>
         </Link>
 
-        {/* Right Navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {/* Theme Switcher */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            style={{
-              background: 'var(--bg-input)',
-              border: '1px solid var(--border-color)',
-              color: 'var(--text-muted)',
-              padding: '8px',
-              borderRadius: 'var(--radius-md)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'var(--transition)',
-            }}
-            title="Toggle theme"
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+        {isAuthenticated ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {/* Quick Navigation Links */}
+            {isDoctor && (
+              <Link
+                to="/doctor/dashboard"
+                style={{
+                  textDecoration: 'none',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Stethoscope size={16} /> Doctor Suite
+              </Link>
+            )}
 
-          {isAuthenticated && user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {isReception && (
+              <Link
+                to="/reception/dashboard"
+                style={{
+                  textDecoration: 'none',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Users size={16} /> Reception Desk
+              </Link>
+            )}
+
+            {isReception && (
+              <Link
+                to="/billing/desk"
+                style={{
+                  textDecoration: 'none',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Receipt size={16} /> Billing POS
+              </Link>
+            )}
+
+            {isDoctor && (
+              <Link
+                to="/analytics"
+                style={{
+                  textDecoration: 'none',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <TrendingUp size={16} /> Analytics
+              </Link>
+            )}
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                borderLeft: '1px solid var(--border-color)',
+                paddingLeft: '1rem',
+              }}
+            >
               <div
                 style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--bg-input)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
-                  background: 'var(--bg-input)',
-                  padding: '6px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-color)',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
                 }}
               >
-                <div
+                <User size={16} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>
+                  {user?.name}
+                </span>
+                <span
                   style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--primary-glow)',
-                    color: 'var(--primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: '700',
-                    fontSize: '0.9rem',
-                    border: '1px solid var(--primary)',
+                    fontSize: '0.7rem',
+                    color: 'var(--text-muted)',
+                    textTransform: 'capitalize',
                   }}
                 >
-                  {user.name ? user.name.charAt(0).toUpperCase() : <UserIcon size={16} />}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span
-                    style={{
-                      fontSize: '0.875rem',
-                      fontWeight: '700',
-                      lineHeight: '1.2',
-                    }}
-                  >
-                    {user.name || user.email || user.phone}
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                    <Badge variant={user.role || 'patient'} size="sm">
-                      {user.role || 'patient'}
-                    </Badge>
-                  </div>
-                </div>
+                  {user?.role?.replace('_', ' ')}
+                </span>
               </div>
+            </div>
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
-                  color: '#F87171',
-                  padding: '8px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '0.875rem',
-                  transition: 'var(--transition)',
-                }}
-              >
-                <LogOut size={16} />
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <Link
-                to="/login"
-                style={{
-                  padding: '8px 16px',
-                  color: 'var(--text-main)',
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: '0.9rem',
-                }}
-              >
-                Login
-              </Link>
-              <Link
-                to="/register"
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: 'var(--primary)',
-                  color: '#FFFFFF',
-                  borderRadius: 'var(--radius-md)',
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: '0.9rem',
-                  boxShadow: '0 4px 12px var(--primary-glow)',
-                }}
-              >
-                Register
-              </Link>
-            </div>
-          )}
-        </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={LogOut}
+              onClick={handleLogout}
+              title="Logout"
+            >
+              Logout
+            </Button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/login')}
+            >
+              Login
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => navigate('/register')}
+            >
+              Register Clinic
+            </Button>
+          </div>
+        )}
       </div>
     </header>
   );

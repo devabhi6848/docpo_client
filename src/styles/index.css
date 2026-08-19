@@ -185,3 +185,28 @@ h1, h2, h3, h4, h5, h6 {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Print Prescription Optimizations */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  header, nav, .no-print, button {
+    display: none !important;
+  }
+  .main-content, .app-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+  #printable-rx {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 10mm !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+}
